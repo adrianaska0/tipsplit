@@ -4,6 +4,7 @@ import HomePage from "./views/HomePage.js";
 import Adjustments from "./views/Adjustments.js";
 import Report from "./views/Report.js";
 import OptionsComp from "./components/OptionsComp.js";
+import Footer from "./components/Footer.js";
 
 const App = () =>{
   return (
@@ -12,13 +13,16 @@ const App = () =>{
           <NavigationBar/>
           <main className="site-main">
             <Routes>
+              <Route path="/" element={<HomePage/>}/>
               <Route path="/home" element={<HomePage/>}/>
               <Route path="/adjustments" element={<Adjustments/>}/>
               <Route path="/report" element={<Report/>}/>
               <Route path="/options" element={<OptionsComp/>}/>
             </Routes>
           </main>
+          <Footer/>
       </div>
+
     </BrowserRouter>
 
   );
