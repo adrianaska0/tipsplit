@@ -10,3 +10,8 @@
 .rightborder {
     border-right: 2px solid black;
 }
+
+.alert {
+  color: darkred;
+  line-height: 0%;
+}

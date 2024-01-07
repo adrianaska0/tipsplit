@@ -1,9 +1,25 @@
-import React from 'react'
+import {useState} from 'react'
 import {Container, Row, Col, Form, InputGroup, Button} from 'react-bootstrap';
 import "../css/homepage.css";
 
 
 function HomePage() {
+
+  const [isCsv, setIsCsv] = useState(false);
+  const [fTypeErr, setfTypeErr] = useState(false);
+
+
+  function getExtension(filename) {
+    return filename.substr(-3);
+  }
+
+  const checkExtension=(e)=>{
+    const result = getExtension(e.target.value) === 'csv';
+    setIsCsv(result);
+    setfTypeErr(!result);
+    console.log("is .csv=", result);
+    return result;
+  }
   return (
     <div>
       <Container>
@@ -12,9 +28,9 @@ function HomePage() {
             <Col className="rightborder"xs={6}>
             <div className="m-4">
               <br/>
-              <h2 class="text-center"><b>How to Use</b></h2>
+              <h2 className="text-center"><b>How to Use</b></h2>
               <br/>
-              <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, 
+              <p className="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, 
               vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. 
               Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. 
               Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, 
@@ -31,14 +47,15 @@ function HomePage() {
             <br/><br/>
             <h4>1. Upload Employee Time Detail Report (.csv)</h4>
             <Form.Group controlId="formFile" className="mb-3">
-                <Form.Control type="file" />
+                <Form.Control onChange={(e)=> checkExtension(e)}type="file" />
             </Form.Group>
+            {fTypeErr && (<p className="alert">Unsupported file type. Accepted Types: .csv</p>)}
             <br/>
             <h4>2. Enter Tip Total</h4>
             <InputGroup className="mb-3">
               <InputGroup.Text>$</InputGroup.Text>
               <Form.Control aria-label="Amount (to the nearest dollar)" />
-              <Button variant="secondary">Submit</Button>
+              <Button variant="secondary" disabled={!isCsv}>Submit</Button>
               </InputGroup>
 
             <br/>
