@@ -6,19 +6,37 @@ import "../css/homepage.css";
 function HomePage() {
 
   const [isCsv, setIsCsv] = useState(false);
-  const [fTypeErr, setfTypeErr] = useState(false);
+  const [tipInput, setTipInput] = useState();
+  const [isFloat, setIsFloat] = useState(false);
+
+  const [fileSubmitted, setFileSubmitted] = useState(false);
+  const [tipSubmitted, setTipSubmitted] = useState(false);
 
 
   function getExtension(filename) {
     return filename.substr(-3);
   }
+  
+  function validateTipFormat(){
+    const result = tipInput.match(/^[0-9]+\.[0-9]{1,2}$|^[0-9]+$/) !== null;
+    console.log("tipIsMoney=", result);
+    return result;
+  }
 
   const checkExtension=(e)=>{
     const result = getExtension(e.target.value) === 'csv';
     setIsCsv(result);
-    setfTypeErr(!result);
     console.log("is .csv=", result);
-    return result;
+    setFileSubmitted(true);
+  }
+
+  const handleTipChange=(e)=>{
+    setTipInput(e.target.value);
+  }
+
+  const handleSubmitData=()=>{
+    setTipSubmitted(true);
+    setIsFloat(validateTipFormat());
   }
   return (
     <div>
@@ -46,16 +64,21 @@ function HomePage() {
             <h2 class="text-center"><b>Get Started</b></h2>
             <br/><br/>
             <h4>1. Upload Employee Time Detail Report (.csv)</h4>
-            <Form.Group controlId="formFile" className="mb-3">
-                <Form.Control onChange={(e)=> checkExtension(e)}type="file" />
-            </Form.Group>
-            {fTypeErr && (<p className="alert">Unsupported file type. Accepted Types: .csv</p>)}
+            <InputGroup className="custom-input" hasValidation>
+              <Form.Control onChange={(e)=> checkExtension(e)}type="file" required isValid={isCsv && fileSubmitted} isInvalid={!isCsv && fileSubmitted}/>
+              <Form.Control.Feedback type="invalid">
+                Test
+              </Form.Control.Feedback>
+            </InputGroup>
             <br/>
             <h4>2. Enter Tip Total</h4>
-            <InputGroup className="mb-3">
+            <InputGroup className="custom-input" hasValidation>
               <InputGroup.Text>$</InputGroup.Text>
-              <Form.Control aria-label="Amount (to the nearest dollar)" />
-              <Button variant="secondary" disabled={!isCsv}>Submit</Button>
+              <Form.Control  name="tips" onChange={(e)=> handleTipChange(e)} aria-label="Amount (to the nearest dollar)" required isValid={isFloat && tipSubmitted} isInvalid={!isFloat && tipSubmitted}/>
+              <Button variant="secondary" type="submit" onClick={()=>handleSubmitData()} disabled={!isCsv} >Submit</Button>
+              <Form.Control.Feedback type="invalid">
+                Test2
+              </Form.Control.Feedback>
               </InputGroup>
 
             <br/>

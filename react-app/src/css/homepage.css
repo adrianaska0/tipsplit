@@ -15,3 +15,9 @@
   color: darkred;
   line-height: 0%;
 }
+
+.custom-input{
+  font-size: 16px !important;
+  margin: 1em 0em !important;
+  width: 90% !important;
+}
