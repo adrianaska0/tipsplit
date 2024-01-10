@@ -1,17 +1,20 @@
 import {useState} from 'react'
 import {Container, Row, Col, Form, InputGroup, Button} from 'react-bootstrap';
 import "../css/homepage.css";
-
+import Papa from 'papaparse';
+import CalculateTips from '../components/CalculateTips';
 
 function HomePage() {
 
   const [isCsv, setIsCsv] = useState(false);
   const [tipInput, setTipInput] = useState();
+  const [fileInput, setFileInput] = useState();
   const [isFloat, setIsFloat] = useState(false);
 
   const [fileSubmitted, setFileSubmitted] = useState(false);
   const [tipSubmitted, setTipSubmitted] = useState(false);
 
+  const [tipData, setTipData] = useState();
 
   function getExtension(filename) {
     return filename.substr(-3);
@@ -23,9 +26,20 @@ function HomePage() {
     return result;
   }
 
+  const parseData=(e)=> {
+    Papa.parse(e.target.files[0], {
+      header: false, 
+      skipEmptyLines: true,
+      complete: function (results) {
+        setTipData(results.data)
+      },
+    });
+  }
+
   const checkExtension=(e)=>{
     const result = getExtension(e.target.value) === 'csv';
     setIsCsv(result);
+    if (result){setFileInput(e)};
     console.log("is .csv=", result);
     setFileSubmitted(true);
   }
@@ -37,6 +51,7 @@ function HomePage() {
   const handleSubmitData=()=>{
     setTipSubmitted(true);
     setIsFloat(validateTipFormat());
+    parseData(fileInput)
   }
   return (
     <div>
@@ -67,7 +82,7 @@ function HomePage() {
             <InputGroup className="custom-input" hasValidation>
               <Form.Control onChange={(e)=> checkExtension(e)}type="file" required isValid={isCsv && fileSubmitted} isInvalid={!isCsv && fileSubmitted}/>
               <Form.Control.Feedback type="invalid">
-                Test
+                Unsupported file type. Accepted Type: .csv
               </Form.Control.Feedback>
             </InputGroup>
             <br/>
@@ -77,16 +92,17 @@ function HomePage() {
               <Form.Control  name="tips" onChange={(e)=> handleTipChange(e)} aria-label="Amount (to the nearest dollar)" required isValid={isFloat && tipSubmitted} isInvalid={!isFloat && tipSubmitted}/>
               <Button variant="secondary" type="submit" onClick={()=>handleSubmitData()} disabled={!isCsv} >Submit</Button>
               <Form.Control.Feedback type="invalid">
-                Test2
+                Tip format invalid.
               </Form.Control.Feedback>
               </InputGroup>
 
             <br/>
             <h4>3. Make Adjustments or View Calculation Report</h4>
             <br/>
-            <div class="text-center"><pre><Button variant="outline-dark" size="sm">Go To Adjustments</Button>     <Button variant="outline-dark" size="sm">View Calculation</Button></pre></div>
+            {(isFloat && isCsv) && (
+            <CalculateTips file={tipData}/>
+            )}
             </div>
-
             </Col>
           </Row>
       </Container>
