@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./views/HomePage.js";
 import Adjustments from "./views/Adjustments.js";
 import Report from "./views/Report.js";
-import OptionsComp from "./components/OptionsComp.js";
 import Footer from "./components/Footer.js";
 
 const App = () =>{
@@ -17,7 +16,6 @@ const App = () =>{
               <Route path="/home" element={<HomePage/>}/>
               <Route path="/adjustments" element={<Adjustments/>}/>
               <Route path="/report" element={<Report/>}/>
-              <Route path="/options" element={<OptionsComp/>}/>
             </Routes>
           </main>
           <Footer/>

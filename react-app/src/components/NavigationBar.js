@@ -1,15 +1,20 @@
-import {useState} from 'react';
-import {Container, Navbar, Row, Col, Nav, Modal} from 'react-bootstrap'
+import {useState, useEffect} from 'react';
+import {Container, Navbar, Row, Col, Nav, Modal, Form, Button} from 'react-bootstrap'
 import logo from './static_images/tipsplitlogov4.png'
 import 'bootstrap/dist/css/bootstrap.css';
-import OptionsComp from './OptionsComp';
+
 
 
 function NavigationBar() {
   const [show, setShow] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
+  const [unpaid, setUnpaid] = useState(false);
+  const [paid, setPaid] = useState(false);
+  const [adj, setAdj]  = useState(false);
+
   const handleShow=()=>{
+    getCurrentOpt();
     setShow(true);
   }
   const handleClose=()=>{
@@ -21,6 +26,37 @@ function NavigationBar() {
   const handleCloseAbout=()=>{
     setShowAbout(false);
   }
+
+  const handleCheck=(e, type)=>{
+    if (type === "unpaid"){setUnpaid(e.target.checked)};
+    if (type === "paid"){setPaid(e.target.checked)};
+    if (type === "adj"){setAdj(e.target.checked)};
+  }
+
+  const handleSave=()=>{
+    sessionStorage.setItem('unpaid', unpaid)
+    sessionStorage.setItem('paid', paid)
+    sessionStorage.setItem('adj', adj)
+    handleClose();
+  }
+
+  function getCurrentOpt(){
+    if (sessionStorage.getItem('unpaid') && sessionStorage.getItem('paid') && sessionStorage.getItem('adj')){
+      setUnpaid(JSON.parse(sessionStorage.getItem('unpaid')));
+      setPaid(JSON.parse(sessionStorage.getItem('paid')));
+      setAdj(JSON.parse(sessionStorage.getItem('adj')));
+    }
+    else {
+      sessionStorage.setItem('unpaid', unpaid);
+      sessionStorage.setItem('paid', paid);
+      sessionStorage.setItem('adj', adj);
+    }
+  }
+
+  useEffect(()=>{
+    getCurrentOpt();
+  },[])
+
   return (
     <>
        <Navbar bg= "dark" data-bs-theme="dark">
@@ -31,7 +67,7 @@ function NavigationBar() {
                 width="200"
                 height="70"
                 className="d-inline-block align-top"
-                alt="React Bootstrap logo"
+                alt="tip$plit logo"
               />
             </Navbar.Brand>
             <Nav className='me'>
@@ -53,9 +89,32 @@ function NavigationBar() {
         <Modal.Title>Options</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          App options go here.
+          <Form>
+            <Form.Check
+            type="checkbox"
+            onChange={(e)=>handleCheck(e, "unpaid")}
+            label={"Unpaid Breaks are tippable"}
+            checked={unpaid}
+            />
+            <br/>
+            <Form.Check
+            type="checkbox"
+            onChange={(e)=>handleCheck(e, "paid")}
+            label={"Paid Breaks are tippable"}
+            checked={paid}
+            />
+            <br/>
+            <Form.Check
+            type="checkbox"
+            onChange={(e)=>handleCheck(e, "adj")}
+            label={"Include Adjustment Summary on Report"}
+            checked={adj}
+            />
+            <br/>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
+          <Button className="w-100" variant="dark" onClick={handleSave}>Save Changes</Button>
         </Modal.Footer>
       </Modal>
 

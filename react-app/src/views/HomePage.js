@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import {Container, Row, Col, Form, InputGroup, Button} from 'react-bootstrap';
 import "../css/homepage.css";
 import Papa from 'papaparse';
@@ -7,7 +7,7 @@ import CalculateTips from '../components/CalculateTips';
 function HomePage() {
 
   const [isCsv, setIsCsv] = useState(false);
-  const [tipInput, setTipInput] = useState();
+  const [tipInput, setTipInput] = useState("");
   const [fileInput, setFileInput] = useState();
   const [isFloat, setIsFloat] = useState(false);
 
@@ -32,6 +32,7 @@ function HomePage() {
       skipEmptyLines: true,
       complete: function (results) {
         setTipData(results.data)
+        console.log("home page", results.data);
       },
     });
   }
@@ -51,8 +52,12 @@ function HomePage() {
   const handleSubmitData=()=>{
     setTipSubmitted(true);
     setIsFloat(validateTipFormat());
-    parseData(fileInput)
+    parseData(fileInput);
+    const tips = parseFloat(tipInput).toFixed(2);
+    sessionStorage.setItem('tipInput', tips);
+    console.log("in handle submit", tipData);
   }
+
   return (
     <div>
       <Container>
@@ -99,7 +104,7 @@ function HomePage() {
             <br/>
             <h4>3. Make Adjustments or View Calculation Report</h4>
             <br/>
-            {(isFloat && isCsv) && (
+            {(isFloat && isCsv && tipData && tipSubmitted) && (
             <CalculateTips file={tipData}/>
             )}
             </div>
