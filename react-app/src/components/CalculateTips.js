@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useRef, useLayoutEffect} from 'react';
 import {Button} from 'react-bootstrap';
 
 function CalculateTips(file){
@@ -10,14 +10,31 @@ function CalculateTips(file){
   const [typeIdx, setTypeIdx] = useState();
 
   const [totalHours, setTotalHours] = useState();
+  const [totalPayout, setTotalPayout] = useState();
   const [tipRate, setTipRate] = useState();
 
   const empArray = [];
 
-  useEffect(()=>{
+  const firstUpdate = useRef(true);
+  useLayoutEffect(() => {
+    if (firstUpdate.current) {
+      firstUpdate.current = false;
+      return;
+    }
     parseData();
-  },[file])
+  });
 
+  function parseData(){
+    console.log("File", file.file);
+    getStore(file.file[0]);
+    getDateRange(file.file[1]);
+    getAtrOrder(file.file[3]);
+    console.log("ORder",totalTimeIdx, typeIdx)
+    if (totalTimeIdx && typeIdx){
+    parseEmployees(file.file);
+    calculateTips();
+    console.log("EMPS", empArray);}
+  }
 
   function getStore(data){
     const str = data[0];
@@ -58,6 +75,7 @@ function CalculateTips(file){
   function parseEmployees(data){
     let hourTotal = 0.0; let paidBreakTotal = 0.0; let unpaidBreakTotal = 0.0; let empName = ""; let empId = "";
     data.forEach((line)=>{
+      console.log(line);
       const name = line[0].match(/['A-Za-z-]{2,}, ['A-Za-z-]{2,} - [E]?[0-9]+/);
       if (name){
         const nameMatch = name[0].match(/['A-Za-z-]{2,}, ['A-Za-z-]{2,}/);
@@ -69,23 +87,26 @@ function CalculateTips(file){
         unpaidBreakTotal = 0.0;
         console.log(empName, empId)
       }
-      else if (line[0] === "Employee Totals"){
+      else if (checkArrayRegex(line, "Employee Totals")){
         hourTotal = hourTotal.toFixed(2);
         paidBreakTotal = paidBreakTotal.toFixed(2);
         unpaidBreakTotal = unpaidBreakTotal.toFixed(2);
         createEmpObj(empId, empName, hourTotal, paidBreakTotal, unpaidBreakTotal);
       }
-      else if (line[totalTimeIdx] && line[typeIdx] === ""){
+      else if (checkArrayRegex(line, "Position Totals")){
+      }
+      else if (checkArrayRegex(line, /[0-9]{2}\/[0-9]{2}\/[0-9]{4}/) && line[typeIdx] === ""){
         hourTotal = hourTotal + parseFloat(line[totalTimeIdx]);
       }
-      else if (line[totalTimeIdx] && line[typeIdx] === "Paid Break"){
+      else if (checkArrayRegex(line, /[0-9]{2}\/[0-9]{2}\/[0-9]{4}/) && line[typeIdx] === "Paid Break"){
         paidBreakTotal = paidBreakTotal + parseFloat(line[totalTimeIdx]);
       }
-      else if (line[totalTimeIdx] && line[typeIdx] === "Unpaid Break"){
+      else if (checkArrayRegex(line, /[0-9]{2}\/[0-9]{2}\/[0-9]{4}/) && line[typeIdx] === "Unpaid Break"){
         unpaidBreakTotal = unpaidBreakTotal + parseFloat(line[totalTimeIdx]);
       }
-    });
-    console.log(empArray);
+    }
+    );
+    
   }
 
   function createEmpObj(id, name, hours, paidB, unpaidB){
@@ -128,24 +149,68 @@ function CalculateTips(file){
     console.log("totalHours", totalHours);
   }
 
-  function getTipRate(){
-    //const tipRate = parseFloat(tipTotal) / totalHours;
-    //console.log(tipRate);
-    //setTipRate(tipRate);
+  function checkArrayRegex (arr, regex){
+    for (let i=0; i<arr.length; i++){
+      const result = arr[i].match(regex);
+      if (result){
+        return true;
+      }
+    }
+    return false;
   }
 
+  function getTipRate(){
+    const tips = JSON.parse(sessionStorage.getItem('tipInput'));
+    const tipRate = tips / totalHours;
+    console.log(tipRate.toFixed(3));
+    setTipRate(tipRate);
+  }
+
+  function setTippableHours(){
+
+      if (JSON.parse(sessionStorage.getItem('unpaid')) === true && JSON.parse(sessionStorage.getItem('paid')) === true){
+        for (let i=0; i < empArray.length; i++){
+          empArray[i].tippableHours = empArray[i].hours + empArray[i].upBhours + empArray[i].pBhours
+        }
+      }
+      else if (JSON.parse(sessionStorage.getItem('unpaid')) === false && JSON.parse(sessionStorage.getItem('paid')) === true){
+        for (let i=0; i < empArray.length; i++){
+          empArray[i].tippableHours = empArray[i].hours + empArray[i].pBhours;
+        }
+      }
+      else if (JSON.parse(sessionStorage.getItem('unpaid')) === true && JSON.parse(sessionStorage.getItem('paid')) === false){
+        for (let i=0; i < empArray.length; i++){
+          empArray[i].tippableHours = empArray[i].hours + empArray[i].upBhours;
+        }
+      }
+      else{
+        for (let i=0; i < empArray.length; i++){
+          empArray[i].tippableHours = empArray[i].hours;
+        }
+    }
+  }
+
+  function calculatePayout(){
+    for (let i=0; i < empArray.length; i++){
+      empArray[i].payout = parseFloat((empArray[i].tippableHours * tipRate).toFixed(2));
+    }
+  }
+
+  function getTotalPayout(){
+    let total = 0;
+    for (let i=0; i < empArray.length; i++){
+      total = total + empArray[i].payout
+    }
+    setTotalPayout(total);
+  } 
+  
   function calculateTips(){
     getTotalHours();
     getTipRate();
-  }
-
-  function parseData(){
-    getStore(file.file[0]);
-    getDateRange(file.file[1]);
-    getAtrOrder(file.file[3]);
-    parseEmployees(file.file);
-    calculateTips();
-
+    setTippableHours();
+    calculatePayout();
+    getTotalPayout();
+    console.log(JSON.parse(sessionStorage.getItem('tipInput')), "VS", totalPayout)
   }
 
   return (

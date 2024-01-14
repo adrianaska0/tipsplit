@@ -32,6 +32,7 @@ function HomePage() {
       skipEmptyLines: true,
       complete: function (results) {
         setTipData(results.data)
+        sessionStorage.setItem('file', JSON.stringify(results.data))
         console.log("home page", results.data);
       },
     });
@@ -50,12 +51,12 @@ function HomePage() {
   }
 
   const handleSubmitData=()=>{
-    setTipSubmitted(true);
     setIsFloat(validateTipFormat());
     parseData(fileInput);
     const tips = parseFloat(tipInput).toFixed(2);
     sessionStorage.setItem('tipInput', tips);
     console.log("in handle submit", tipData);
+    setTipSubmitted(true);
   }
 
   return (
