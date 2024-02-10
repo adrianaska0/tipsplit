@@ -1,5 +1,5 @@
-import {useState, useRef, useLayoutEffect} from 'react';
-import {Button} from 'react-bootstrap';
+import {useState, useRef, useLayoutEffect, useEffect} from 'react';
+import {Button, Spinner} from 'react-bootstrap';
 
 function CalculateTips(file){
   
@@ -12,6 +12,8 @@ function CalculateTips(file){
   const [totalHours, setTotalHours] = useState();
   const [totalPayout, setTotalPayout] = useState();
   const [tipRate, setTipRate] = useState();
+
+  const [showSpinner, setShowSpinner] = useState(true);
 
   const empArray = [];
 
@@ -118,30 +120,40 @@ function CalculateTips(file){
       upBhours:parseFloat(unpaidB),
       tippableHours: 0,
       payout: 0,
+      percentage: 0,
+      active: true,
     }
     empArray[empArray.length] = employee;
   }
 
-  function getTotalHours(){
+  function getTotalHours(){  //get total hour sum of all active employees
     let totalHours = 0;
     if (JSON.parse(sessionStorage.getItem('unpaid')) === true && JSON.parse(sessionStorage.getItem('paid')) === true){
       for (let i=0; i < empArray.length; i++){
+        if (empArray[i].active){
         totalHours = totalHours + empArray[i].hours + empArray[i].pBhours + empArray[i].upBhours;
+        }
       }
     }
     else if (JSON.parse(sessionStorage.getItem('unpaid')) === false && JSON.parse(sessionStorage.getItem('paid')) === true){
       for (let i=0; i < empArray.length; i++){
+        if (empArray[i].active){
         totalHours = totalHours + empArray[i].hours + empArray[i].pBhours;
+        }
       }
     }
     else if (JSON.parse(sessionStorage.getItem('unpaid')) === true && JSON.parse(sessionStorage.getItem('paid')) === false){
       for (let i=0; i < empArray.length; i++){
+        if (empArray[i].active){
         totalHours = totalHours + empArray[i].hours + empArray[i].upBhours;
+        }
       }
     }
     else{
       for (let i=0; i < empArray.length; i++){
+        if (empArray[i].active){
         totalHours = totalHours + empArray[i].hours;
+        }
       }
     }
     totalHours = parseFloat(totalHours.toFixed(2));
@@ -196,6 +208,12 @@ function CalculateTips(file){
     }
   }
 
+  function calculatePercentage(){
+    for (let i=0; i < empArray.length; i++){
+      empArray[i].percentage = parseFloat(((empArray[i].tippableHours / totalHours) * 100).toFixed(2))
+    }
+  }
+
   function getTotalPayout(){
     let total = 0;
     for (let i=0; i < empArray.length; i++){
@@ -204,17 +222,42 @@ function CalculateTips(file){
     setTotalPayout(total);
   } 
   
+  function toSessionStorage(){
+    const empIdArray = [];
+    for (let i=0; i < empArray.length; i++){
+      sessionStorage.setItem(empArray[i].id, JSON.stringify(empArray[i]));
+      empIdArray[empIdArray.length] = empArray[i].id;
+    }
+    sessionStorage.setItem('EMPS', JSON.stringify(empIdArray));
+  }
+
   function calculateTips(){
     getTotalHours();
     getTipRate();
     setTippableHours();
+    calculatePercentage();
     calculatePayout();
     getTotalPayout();
     console.log(JSON.parse(sessionStorage.getItem('tipInput')), "VS", totalPayout)
+    //export
+    toSessionStorage();
+    setShowSpinner(false);
   }
 
   return (
-      <div class="text-center"><pre><Button variant="outline-dark" size="sm">Go To Adjustments</Button>     <Button variant="outline-dark" size="sm">View Calculation</Button></pre></div>
+    <>
+    {(showSpinner)? (
+      <div className='text-center'>
+      <Spinner animation="border" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+      </div>
+    )
+    : (
+      <div class="text-center"><pre><Button href="/adjustments" variant="outline-dark" size="sm">Go To Adjustments</Button>     <Button href="/report" variant="outline-dark" size="sm">View Calculation</Button></pre></div>
+      )
+    }
+    </>
   )
 }
 

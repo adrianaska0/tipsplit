@@ -34,11 +34,13 @@ function NavigationBar() {
   }
 
   const handleSave=()=>{
+    if (unpaid !== JSON.parse(sessionStorage.getItem('unpaid')) || paid !== JSON.parse(sessionStorage.getItem('paid'))){
     sessionStorage.setItem('unpaid', unpaid)
     sessionStorage.setItem('paid', paid)
     sessionStorage.setItem('adj', adj)
-    handleClose();
-  }
+    }
+  handleClose();
+}
 
   function getCurrentOpt(){
     if (sessionStorage.getItem('unpaid') && sessionStorage.getItem('paid') && sessionStorage.getItem('adj')){
@@ -114,7 +116,7 @@ function NavigationBar() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button className="w-100" variant="dark" onClick={handleSave}>Save Changes</Button>
+          <Button className="w-100" variant="dark" id="submitOptions" onClick={handleSave}>Save Changes</Button>
         </Modal.Footer>
       </Modal>
 
